@@ -1,0 +1,75 @@
+<html>
+
+<head>
+  <title>
+    Shyam Security Project
+  </title>
+  <style>
+    .active {
+      color: teal;
+      border-bottom-color: teal;
+    }
+
+    .tab {
+      display: none;
+    }
+
+    .tab:target {
+      display: block;
+    }
+
+    .tab:last-child {
+      display: block;
+    }
+
+    .tab:last-child {
+      display: block;
+    }
+
+    .tab:target~.tab:last-child {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <section class="tab" id="last-tab">
+    <nav>
+      <a href="#first-tab">Encryption</a>
+      <a href="#last-tab" class="active">Decryption</a>
+    </nav>
+    <p>Last tab content</p>
+  </section>
+  <section class="tab" id="first-tab">
+    <nav>
+      <a href="#first-tab" class="active">Encryption</a>
+      <a href="#last-tab">Decryption</a>
+    </nav>
+    <label for="file">Choose Input file type:</label>
+
+    <select name="file" id="file">
+      <option value="tx_field">Text field</option>
+      <option value="img_file">Image File</option>
+      <option value="pdf_file">Pdf File</option>
+    </select>
+
+    <label for="sharing">Choose Sharing Technique:</label>
+
+    <select name="sharing" id="sharing">
+      <option value="shamir">Shamir</option>
+      <option value="tc2">Technique 2</option>
+      <option value="tc3">Technique 3</option>
+    </select>
+
+    <label>Give user email ID:</label>
+    <input type="text" />
+    <button class="ui primary button">
+      Save
+    </button>
+  </section>
+  <script src="script.js"></script>
+
+</body>
+
+</html>
