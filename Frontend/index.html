@@ -7,16 +7,21 @@
     $(function () {
       $("#encrypt_result").hide()
       $("#decrypt_result").hide()
+      $("#encrypt_text_div").hide()
       $("#file").on('change', function () {
         console.log($("#file").val())
         const changed_file_val = $("#file").val();
         if (changed_file_val === 'tx_field') {
+          $("#encrypt_text_div").show()
           $("#txt_data_field").show()
         }
       })
 
       $('#encrypt_submit_btn').click(function () {
-        const text_val = {"data_to_encrypt": $("#txt_data_field").val()}
+        const text_val = {
+          "data_to_encrypt": $("#txt_data_field").val(),
+          "email": $("#email_txt").val()
+        }
         console.log("text_val", text_val)
         fetch('http://127.0.0.1:5000/encrypt/shamir', {
           method: 'POST', // or 'PUT'
@@ -29,7 +34,7 @@
           .then(data => {
             console.log('Success:', data);
             $("#encrypt_result").val(JSON.stringify(data.data))
-            $("#encrypt_result").show()
+            $("#decrypt_div").show()
           })
           .catch((error) => {
             console.error('Error:', error);
@@ -38,7 +43,8 @@
 
       $('#decrypt_submit_btn').click(function () {
         console.log($("#decrypt_text").val())
-        const text_val = {"encrypted_data": JSON.parse($("#decrypt_text").val())}
+        console.log(typeof ($("#decrypt_text").val()))
+        const text_val = {"encrypted_data": $("#decrypt_text").val()}
         console.log("text_val", text_val)
         fetch('http://127.0.0.1:5000/decrypt/shamir', {
           method: 'POST', // or 'PUT'
@@ -119,7 +125,10 @@
       <option value="img_file">Image File</option>
       <option value="pdf_file">Pdf File</option>
     </select><br/>
-    <input id="txt_data_field" type="text" aria-label="Data to Decrypt" style="display: none;" />
+    <div id="encrypt_text_div">
+      <span>Data to Decrypt</span>
+      <input id="txt_data_field" type="text" style="display: none;" />
+    </div>
     <label for="sharing">Choose Sharing Technique:</label>
 
     <select name="sharing" id="sharing">
@@ -128,8 +137,10 @@
       <option value="tc3">Technique 3</option>
     </select>
     <br/>
-    <label>Give user email ID:</label>
-    <input type="text" />
+    <div>
+      <p>Enter email address of the recepient</p>
+      <input type="text" id="email_txt" />
+    </div>
     <br/>
 
     <textarea id="encrypt_result" cols="50" rows="20" >
@@ -137,7 +148,7 @@
     </textarea>
     <br/>
     <button id="encrypt_submit_btn" class="ui primary button">
-      Save
+      Encrypt
     </button>
     <br/>
   </section>
