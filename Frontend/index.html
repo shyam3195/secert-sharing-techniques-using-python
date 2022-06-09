@@ -1,6 +1,65 @@
 <html>
 
 <head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <!-- <script src="jquery-3.6.0.min.js"></script> -->
+  <script>
+    $(function () {
+      $("#encrypt_result").hide()
+      $("#decrypt_result").hide()
+      $("#file").on('change', function () {
+        console.log($("#file").val())
+        const changed_file_val = $("#file").val();
+        if (changed_file_val === 'tx_field') {
+          $("#txt_data_field").show()
+        }
+      })
+
+      $('#encrypt_submit_btn').click(function () {
+        const text_val = {"data_to_encrypt": $("#txt_data_field").val()}
+        console.log("text_val", text_val)
+        fetch('http://127.0.0.1:5000/encrypt/shamir', {
+          method: 'POST', // or 'PUT'
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(text_val),
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Success:', data);
+            $("#encrypt_result").val(JSON.stringify(data.data))
+            $("#encrypt_result").show()
+          })
+          .catch((error) => {
+            console.error('Error:', error);
+          });
+      })
+
+      $('#decrypt_submit_btn').click(function () {
+        console.log($("#decrypt_text").val())
+        const text_val = {"encrypted_data": JSON.parse($("#decrypt_text").val())}
+        console.log("text_val", text_val)
+        fetch('http://127.0.0.1:5000/decrypt/shamir', {
+          method: 'POST', // or 'PUT'
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(text_val),
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Success:', data);
+            $("#decrypt_result").val(JSON.stringify(data.data))
+            $("#decrypt_result").show()
+          })
+          .catch((error) => {
+            console.error('Error:', error);
+          });
+      })
+
+    });
+  </script>
   <title>
     Shyam Security Project
   </title>
@@ -39,7 +98,14 @@
       <a href="#first-tab">Encryption</a>
       <a href="#last-tab" class="active">Decryption</a>
     </nav>
-    <p>Last tab content</p>
+    <b>Decryption</b>
+    <textarea id="decrypt_text" cols="50" rows="20" ></textarea><br/>
+    <textarea id="decrypt_result" cols="50" rows="6" ></textarea><br/>
+    <button id="decrypt_submit_btn">
+      Decrypt
+    </button>
+    <br/>
+
   </section>
   <section class="tab" id="first-tab">
     <nav>
@@ -52,8 +118,8 @@
       <option value="tx_field">Text field</option>
       <option value="img_file">Image File</option>
       <option value="pdf_file">Pdf File</option>
-    </select>
-
+    </select><br/>
+    <input id="txt_data_field" type="text" aria-label="Data to Decrypt" style="display: none;" />
     <label for="sharing">Choose Sharing Technique:</label>
 
     <select name="sharing" id="sharing">
@@ -61,14 +127,21 @@
       <option value="tc2">Technique 2</option>
       <option value="tc3">Technique 3</option>
     </select>
-
+    <br/>
     <label>Give user email ID:</label>
     <input type="text" />
-    <button class="ui primary button">
+    <br/>
+
+    <textarea id="encrypt_result" cols="50" rows="20" >
+
+    </textarea>
+    <br/>
+    <button id="encrypt_submit_btn" class="ui primary button">
       Save
     </button>
+    <br/>
   </section>
-  <script src="script.js"></script>
+
 
 </body>
 
