@@ -1,157 +1,214 @@
 <html>
 
 <head>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <!-- <script src="jquery-3.6.0.min.js"></script> -->
-  <script>
-    $(function () {
-      $("#encrypt_result").hide()
-      $("#decrypt_result").hide()
-      $("#encrypt_text_div").hide()
-      $("#file").on('change', function () {
-        console.log($("#file").val())
-        const changed_file_val = $("#file").val();
-        if (changed_file_val === 'tx_field') {
-          $("#encrypt_text_div").show()
-          $("#txt_data_field").show()
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- <script src="jquery-3.6.0.min.js"></script> -->
+    <script>
+        $(function() {
+            let text_result = null
+            $("#encrypt_result").hide()
+            $("#decrypt_result").hide()
+            $("#encrypt_text_div").hide()
+            $("#text_file_div").hide()
+
+
+            $("#file_type").on('change', function() {
+                console.log($("#file_type").val())
+                const changed_file_val = $("#file_type").val();
+                if (changed_file_val === 'tx_field') {
+                    $("#encrypt_text_div").show()
+                    $("#txt_data_field").show()
+                } else if (changed_file_val === 'text_file') {
+                    $("#text_file_div").show()
+                }
+            })
+
+            $('#encrypt_submit_btn').click(function() {
+                const selected_sharing_method = $('#sharing').find(":selected").text();
+                const selected_file_type = $('#file_type').find(":selected").text();
+
+                const text_val = {
+                    "data_to_encrypt": $("#txt_data_field").val(),
+                    "email": $("#email_txt").val()
+                }
+
+                let URL = "http://127.0.0.1:5000/encrypt/";
+                let body = JSON.stringify(text_val);
+                let HEADER = {
+                    'Content-Type': 'application/json',
+                }
+
+                if (selected_sharing_method === "Shamir") {
+                    URL = URL + "shamir"
+                } else if (selected_sharing_method === "AES") {
+                    URL = URL + "aes"
+                }
+                if (selected_file_type === 'Text File') {
+                    body = JSON.stringify({
+                        "data_to_encrypt": text_result,
+                        "email": $("#email_txt").val()
+                    })
+                }
+
+                fetch(URL, {
+                        method: 'POST', // or 'PUT'
+                        headers: HEADER,
+                        body: body,
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        $("#encrypt_result").val(JSON.stringify(data.data))
+                        $("#decrypt_div").show()
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+            })
+
+            $('#decrypt_submit_btn').click(function() {
+
+                const selected_sharing_method = $('#decrypting').find(":selected").text();
+                let URL = "http://127.0.0.1:5000/decrypt/"
+                if (selected_sharing_method === "Shamir") {
+                    URL = URL + "shamir"
+                } else if (selected_sharing_method === "AES") {
+                    URL = URL + "aes"
+                }
+
+                const text_val = {
+                    "encrypted_data": $("#decrypt_text").val()
+                }
+
+                fetch(URL, {
+                        method: 'POST', // or 'PUT'
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(text_val),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Success:', data);
+                        $("#decrypt_result").val(JSON.stringify(data.data))
+                        $("#decrypt_result").show()
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+            })
+
+            const fileUploader = document.getElementById('file_upload');
+
+            fileUploader.addEventListener('change', (event) => {
+                files = event.target.files[0];
+                var fileReader = new FileReader();
+                fileReader.onload = function(fileLoadedEvent) {
+                    text_result = fileLoadedEvent.target.result
+                };
+                fileReader.readAsText(files, "UTF-8");
+            });
+
+
+        });
+    </script>
+    <title>
+        Shyam Security Project
+    </title>
+    <style>
+        .active {
+            color: teal;
+            border-bottom-color: teal;
         }
-      })
-
-      $('#encrypt_submit_btn').click(function () {
-        const text_val = {
-          "data_to_encrypt": $("#txt_data_field").val(),
-          "email": $("#email_txt").val()
+        
+        .tab {
+            display: none;
         }
-        console.log("text_val", text_val)
-        fetch('http://127.0.0.1:5000/encrypt/shamir', {
-          method: 'POST', // or 'PUT'
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(text_val),
-        })
-          .then(response => response.json())
-          .then(data => {
-            console.log('Success:', data);
-            $("#encrypt_result").val(JSON.stringify(data.data))
-            $("#decrypt_div").show()
-          })
-          .catch((error) => {
-            console.error('Error:', error);
-          });
-      })
-
-      $('#decrypt_submit_btn').click(function () {
-        console.log($("#decrypt_text").val())
-        console.log(typeof ($("#decrypt_text").val()))
-        const text_val = {"encrypted_data": $("#decrypt_text").val()}
-        console.log("text_val", text_val)
-        fetch('http://127.0.0.1:5000/decrypt/shamir', {
-          method: 'POST', // or 'PUT'
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(text_val),
-        })
-          .then(response => response.json())
-          .then(data => {
-            console.log('Success:', data);
-            $("#decrypt_result").val(JSON.stringify(data.data))
-            $("#decrypt_result").show()
-          })
-          .catch((error) => {
-            console.error('Error:', error);
-          });
-      })
-
-    });
-  </script>
-  <title>
-    Shyam Security Project
-  </title>
-  <style>
-    .active {
-      color: teal;
-      border-bottom-color: teal;
-    }
-
-    .tab {
-      display: none;
-    }
-
-    .tab:target {
-      display: block;
-    }
-
-    .tab:last-child {
-      display: block;
-    }
-
-    .tab:last-child {
-      display: block;
-    }
-
-    .tab:target~.tab:last-child {
-      display: none;
-    }
-  </style>
+        
+        .tab:target {
+            display: block;
+        }
+        
+        .tab:last-child {
+            display: block;
+        }
+        
+        .tab:last-child {
+            display: block;
+        }
+        
+        .tab:target~.tab:last-child {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
 
-  <section class="tab" id="last-tab">
-    <nav>
-      <a href="#first-tab">Encryption</a>
-      <a href="#last-tab" class="active">Decryption</a>
-    </nav>
-    <b>Decryption</b>
-    <textarea id="decrypt_text" cols="50" rows="20" ></textarea><br/>
-    <textarea id="decrypt_result" cols="50" rows="6" ></textarea><br/>
-    <button id="decrypt_submit_btn">
-      Decrypt
-    </button>
-    <br/>
-
-  </section>
-  <section class="tab" id="first-tab">
-    <nav>
-      <a href="#first-tab" class="active">Encryption</a>
-      <a href="#last-tab">Decryption</a>
-    </nav>
-    <label for="file">Choose Input file type:</label>
-
-    <select name="file" id="file">
-      <option value="tx_field">Text field</option>
-      <option value="img_file">Image File</option>
-      <option value="pdf_file">Pdf File</option>
-    </select><br/>
-    <div id="encrypt_text_div">
-      <span>Data to Decrypt</span>
-      <input id="txt_data_field" type="text" style="display: none;" />
-    </div>
-    <label for="sharing">Choose Sharing Technique:</label>
-
-    <select name="sharing" id="sharing">
+    <section class="tab" id="last-tab">
+        <nav>
+            <a href="#first-tab">Encryption</a>
+            <a href="#last-tab" class="active">Decryption</a>
+        </nav>
+        <b>Decryption</b>
+        <select name="decrypting" id="decrypting">
       <option value="shamir">Shamir</option>
-      <option value="tc2">Technique 2</option>
+      <option value="aes">AES</option>
       <option value="tc3">Technique 3</option>
     </select>
-    <br/>
-    <div>
-      <p>Enter email address of the recepient</p>
-      <input type="text" id="email_txt" />
-    </div>
-    <br/>
+        <textarea id="decrypt_text" cols="50" rows="20"></textarea><br />
+        <textarea id="decrypt_result" cols="50" rows="6"></textarea><br />
+        <button id="decrypt_submit_btn">
+      Decrypt
+    </button>
+        <br />
 
-    <textarea id="encrypt_result" cols="50" rows="20" >
+    </section>
+    <section class="tab" id="first-tab">
+        <nav>
+            <a href="#first-tab" class="active">Encryption</a>
+            <a href="#last-tab">Decryption</a>
+        </nav>
+        <label for="file">Choose Input file type:</label>
+
+        <select name="file" id="file_type">
+      <option value="null">Choose the type of data</option>
+      <option value="tx_field">Text field</option>
+      <option value="img_file">Image File</option>
+      <option value="text_file">Text File</option>
+    </select><br />
+        <div id="encrypt_text_div">
+            <span>Data to Decrypt</span>
+            <input id="txt_data_field" type="text" style="display: none;" />
+        </div>
+        <label for="sharing">Choose Sharing Technique:</label>
+
+        <select name="sharing" id="sharing">
+      <option value="shamir">Shamir</option>
+      <option value="aes">AES</option>
+      <option value="tc3">Technique 3</option>
+    </select>
+        <div id="text_file_div">
+            <p>Choose the text file to decrypt</p>
+            <input type="file" id="file_upload" />
+        </div>
+        <br />
+
+        <div>
+            <p>Enter email address of the recepient</p>
+            <input type="text" id="email_txt" />
+        </div>
+
+        <br />
+
+        <textarea id="encrypt_result" cols="50" rows="20">
 
     </textarea>
-    <br/>
-    <button id="encrypt_submit_btn" class="ui primary button">
+        <br />
+        <button id="encrypt_submit_btn" class="ui primary button">
       Encrypt
     </button>
-    <br/>
-  </section>
+        <br />
+    </section>
 
 
 </body>

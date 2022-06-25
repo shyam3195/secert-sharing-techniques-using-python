@@ -1,3 +1,4 @@
 __pycache__
 node_modules
 Backend/utils/secrets.py
+.DS_Store

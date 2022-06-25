@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+
+  backend:
+    container_name: secret_sharing_backend
+    image: secret_sharing_backend:latest
+    build:
+      context: ./
+      dockerfile: ./Backend/Dockerfile
+    volumes:
+       - ./Backend:/home/api
+    expose:
+      - 5000
+    ports:
+      - 5000:5000
+    restart: always
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "2017:27017"
+    volumes:
+      - mongodb:/data/db
+  
+volumes:
+    mongodb:
