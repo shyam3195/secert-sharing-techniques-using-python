@@ -1,7 +1,13 @@
 <html>
 
 <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>
+
     <!-- <script src="jquery-3.6.0.min.js"></script> -->
     <script>
         $(function() {
@@ -125,105 +131,161 @@
         Shyam Security Project
     </title>
     <style>
-        .active {
-            color: teal;
-            border-bottom-color: teal;
+        body {
+            background: #eee;
+            margin-top: 0px;
         }
         
-        .tab {
-            display: none;
+        .price-tabs {
+            background-color: #fff;
+            -webkit-box-shadow: 0 5px 20px 0 rgba(39, 39, 39, 0.1);
+            box-shadow: 0 5px 20px 0 rgba(39, 39, 39, 0.1);
+            display: inline-block;
+            padding: 7px;
+            border-radius: 40px;
+            border: 1px solid #00b5ec;
+            margin-bottom: 45px;
         }
         
-        .tab:target {
-            display: block;
+        @media (min-width: 768px) {
+            .price-tabs {
+                margin-bottom: 20px;
+            }
         }
         
-        .tab:last-child {
-            display: block;
+        .price-tabs .nav-link {
+            color: #00b5ec;
+            font-weight: 500;
+            font-family: "Montserrat", sans-serif;
+            font-size: 16px;
+            padding: 12px 35px;
+            display: inline-block;
+            text-transform: capitalize;
+            border-radius: 40px;
+            -webkit-transition: all 0.3s ease;
+            transition: all 0.3s ease;
         }
         
-        .tab:last-child {
-            display: block;
+        @media (min-width: 768px) {
+            .price-tabs .nav-link {
+                padding: 12px 40px;
+            }
         }
         
-        .tab:target~.tab:last-child {
-            display: none;
+        .price-tabs .nav-link.active {
+            background-color: #00b5ec;
+            color: #fff;
+        }
+        
+        .crypto-method {
+            background-color: #fff;
+            -webkit-box-shadow: 0 5px 30px 0 rgba(39, 39, 39, 0.15);
+            box-shadow: 0 5px 30px 0 rgba(39, 39, 39, 0.15);
+            border-radius: 50px;
+        }
+        
+        @media (min-width: 768px) {
+            .crypto-method {
+                margin: 0 20px;
+                padding: 60px;
+                padding-bottom: 50px;
+            }
+        }
+        
+        .selected {
+            background-color: #00b5ec;
+        }
+        
+        .inner-cypto {
+            padding: 60px;
+            padding-left: 150px;
+        }
+        
+        .float-left {
+            margin-left: 0px;
         }
     </style>
 </head>
 
 <body>
 
-    <section class="tab" id="last-tab">
-        <nav>
-            <a href="#first-tab">Encryption</a>
-            <a href="#last-tab" class="active">Decryption</a>
-        </nav>
-        <b>Decryption</b>
-        <select name="decrypting" id="decrypting_method">
-      <option value="shamir">Shamir</option>
-      <option value="aes">AES</option>
-      <option value="Elgamal">Elgamal</option>
-    </select>
-        <div>
-            <label>Decrypt Text</label>
-            <textarea id="decrypt_text" cols="50" rows="20"></textarea><br />
+    <div class="container">
+        <div class="text-center">
+            <div class="nav price-tabs" role="tablist">
+                <a class="nav-link active" href="#encryption" role="tab" data-toggle="tab">Encryption</a>
+                <a class="nav-link" href="#decryption" role="tab" data-toggle="tab">Decryption</a>
+            </div>
         </div>
-        <textarea id="decrypt_result" cols="50" rows="6"></textarea><br />
-        <button id="decrypt_submit_btn">
-      Decrypt
-    </button>
-        <br />
+        <div class="tab-content wow fadeIn" style="visibility: visible; animation-name: fadeIn;">
+            <div role="tabpanel" class="tab-pane fade show active" id="encryption">
+                <div class="row justify-content-center">
+                    <div class="crypto-method text-center selected">
+                        <div class="inner-cypto">
+                            <form>
+                                <div class="form-group">
+                                    <label class="float-left" for="sharing">Sharing Technique:</label>
+                                    <select name="sharing" id="sharing" class="selectpicker">
+                                        <option value="shamir">Shamir</option>
+                                        <option value="aes">AES</option>
+                                        <option value="Elgamal">Elgamal</option>
+                                    </select>
+                                </div><br/>
+                                <div class="form-group">
+                                    <label class="float-left" for="file">Input file type:</label>
+                                    <select name="file" id="file_type" class="selectpicker" aria-label="Default select example">
+                                        <option value="null">Choose the type of data</option>
+                                        <option value="tx_field">Text field</option>
+                                        <option value="text_file">Text File</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="encrypt_text_div">
+                                    <label class="float-left" for="data">Input text:</label>
+                                    <input id="txt_data_field" class="form-control" type="text" style="display: none;" />
+                                </div>
+                                <div class="form-group" id="text_file_div">
+                                    <label class="form-label float-left" for="customFile">Text File</label>
+                                    <input type="file" class="form-control" id="file_upload" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="float-left" for="file">Recepient Email</label>
+                                    <input type="text" class="form-control" id="email_txt" />
+                                </div>
+                                <button type="submit" id="encrypt_submit_btn" class="btn btn-primary btn-lg btn-block">Encrypt</button>
+                                <div class="form-group">
+                                    <textarea id="encrypt_result" cols="50" rows="20"></textarea>
+                                </div>
+                            </form>
+                        </div>
 
-    </section>
-    <section class="tab" id="first-tab">
-        <nav>
-            <a href="#first-tab" class="active">Encryption</a>
-            <a href="#last-tab">Decryption</a>
-        </nav>
-        <label for="file">Choose Input file type:</label>
+                    </div>
 
-        <select name="file" id="file_type">
-      <option value="null">Choose the type of data</option>
-      <option value="tx_field">Text field</option>
-      <option value="img_file">Image File</option>
-      <option value="text_file">Text File</option>
-    </select><br />
-        <div id="encrypt_text_div">
-            <span>Data to Decrypt</span>
-            <input id="txt_data_field" type="text" style="display: none;" />
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="decryption">
+                <div class="row justify-content-center">
+                    <div class="crypto-method text-center selected">
+                        <div class="form-group">
+                            <label for="decrypting">Decrypt Method</label>
+                            <select name="decrypting" id="decrypting_method" class="selectpicker">
+                                <option value="shamir">Shamir</option>
+                                <option value="aes">AES</option>
+                                <option value="Elgamal">Elgamal</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="decrypt_text">Decrypt Text</label>
+                            <textarea name="decrypt_text" id="decrypt_text" cols="50" rows="15"></textarea><br />
+                        </div>
+                        <textarea id="decrypt_result" cols="50" rows="6"></textarea><br />
+                        <button type="submit" id="decrypt_submit_btn" class="btn btn-primary btn-lg btn-block">
+                            Decrypt
+                        </button>
+                    </div>
+
+                </div>
+            </div>
         </div>
-        <label for="sharing">Choose Sharing Technique:</label>
-
-        <select name="sharing" id="sharing">
-      <option value="shamir">Shamir</option>
-      <option value="aes">AES</option>
-      <option value="Elgamal">Elgamal</option>
-    </select>
-        <div id="text_file_div">
-            <p>Choose the text file to decrypt</p>
-            <input type="file" id="file_upload" />
-        </div>
-        <br />
-
-        <div>
-            <p>Enter email address of the recepient</p>
-            <input type="text" id="email_txt" />
-        </div>
-
-        <br />
-
-        <textarea id="encrypt_result" cols="50" rows="20">
-
-    </textarea>
-        <br />
-        <button id="encrypt_submit_btn" class="ui primary button">
-      Encrypt
-    </button>
-        <br />
-    </section>
-
-
+    </div>
 </body>
 
 </html>
