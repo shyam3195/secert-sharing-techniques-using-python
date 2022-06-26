@@ -18,4 +18,5 @@ def write_data_in_db(data, dbName):
 
 
 def query_data_from_db(query, dbName):
-    return json.loads(dumps(mydb[dbName].find({'cipher_text': str(query)})))
+    return json.loads(dumps(mydb[dbName].find({
+        'cipher_text': str(query)})))

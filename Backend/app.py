@@ -28,7 +28,7 @@ def shamir_secret_share():
     receiver_email_id = data['email']
     logging.warning(f'Original Secret: {secret}')
     # Phase I: Generation of shares
-    shares = shamir.generate_shares(n, t, secret)
+    shares = shamir.encrypt(n, t, secret)
     logging.warning(f'Shares: {", ".join(str(share) for share in shares)}')
 
     # Phase II: Secret Reconstruction
@@ -37,7 +37,7 @@ def shamir_secret_share():
     pool = random.sample(shares, t)
     mail.send_email(receiver_address=receiver_email_id, message=pool, subject="Shamir Algorithm")
     logging.warning(f'Combining shares: {", ".join(str(share) for share in pool)}')
-    logging.warning(f'Reconstructed secret: {shamir.reconstruct_secret(pool)}')
+    logging.warning(f'Reconstructed secret: {shamir.decrypt(pool)}')
     return jsonify({"data": pool})
 
 
@@ -60,8 +60,8 @@ def shamir_secret_decrypt():
         poolcpy = poolcpy[end_index+2:]
         if poolcpy.find('(') == -1:
             break
-    logging.warning(f'Reconstructed secret: {shamir.reconstruct_secret(pool)}')
-    return jsonify({"data": shamir.reconstruct_secret(pool)})
+    logging.warning(f'Reconstructed secret: {shamir.decrypt(pool)}')
+    return jsonify({"data": shamir.decrypt(pool)})
 
 
 @app.route('/encrypt/aes', methods=['POST'])

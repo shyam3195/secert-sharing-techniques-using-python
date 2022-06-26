@@ -5,7 +5,7 @@ from decimal import Decimal
 FIELD_SIZE = 10**5
 
 
-def reconstruct_secret(shares):
+def decrypt(shares):
 	"""
 	Combines individual shares (points on graph)
 	using Lagranges interpolation.
@@ -61,7 +61,7 @@ def coeff(t, secret):
 	return coeff
 
 
-def generate_shares(n, m, secret):
+def encrypt(n, m, secret):
 	"""
 	Split given `secret` into `n` shares with minimum threshold
 	of `m` shares to recover this `secret`, using SSS algorithm.
