@@ -12,14 +12,19 @@
             $("#text_file_div").hide()
 
 
-            $("#file_type").on('change', function() {
-                console.log($("#file_type").val())
+            $("#file_type").change(function() {
                 const changed_file_val = $("#file_type").val();
                 if (changed_file_val === 'tx_field') {
                     $("#encrypt_text_div").show()
                     $("#txt_data_field").show()
-                } else if (changed_file_val === 'text_file') {
+                } else {
+                    $("#encrypt_text_div").hide()
+                    $("#txt_data_field").hide()
+                }
+                if (changed_file_val === 'text_file') {
                     $("#text_file_div").show()
+                } else {
+                    $("#text_file_div").hide()
                 }
             })
 
@@ -42,6 +47,8 @@
                     URL = URL + "shamir"
                 } else if (selected_sharing_method === "AES") {
                     URL = URL + "aes"
+                } else if (selected_sharing_method === "Elgamal") {
+                    URL = URL + "elgamal"
                 }
                 if (selected_file_type === 'Text File') {
                     body = JSON.stringify({
@@ -67,16 +74,19 @@
 
             $('#decrypt_submit_btn').click(function() {
 
-                const selected_sharing_method = $('#decrypting').find(":selected").text();
+                const selected_sharing_method = $('#decrypting_method').find(":selected").text();
+                const text_val = {
+                    "encrypted_data": $("#decrypt_text").val()
+                }
+
+                console.log("selected_sharing_method", selected_sharing_method)
                 let URL = "http://127.0.0.1:5000/decrypt/"
                 if (selected_sharing_method === "Shamir") {
                     URL = URL + "shamir"
                 } else if (selected_sharing_method === "AES") {
                     URL = URL + "aes"
-                }
-
-                const text_val = {
-                    "encrypted_data": $("#decrypt_text").val()
+                } else if (selected_sharing_method === "Elgamal") {
+                    URL = URL + "elgamal"
                 }
 
                 fetch(URL, {
@@ -97,8 +107,8 @@
                     });
             })
 
-            const fileUploader = document.getElementById('file_upload');
 
+            const fileUploader = document.getElementById('file_upload');
             fileUploader.addEventListener('change', (event) => {
                 files = event.target.files[0];
                 var fileReader = new FileReader();
@@ -150,12 +160,15 @@
             <a href="#last-tab" class="active">Decryption</a>
         </nav>
         <b>Decryption</b>
-        <select name="decrypting" id="decrypting">
+        <select name="decrypting" id="decrypting_method">
       <option value="shamir">Shamir</option>
       <option value="aes">AES</option>
-      <option value="tc3">Technique 3</option>
+      <option value="Elgamal">Elgamal</option>
     </select>
-        <textarea id="decrypt_text" cols="50" rows="20"></textarea><br />
+        <div>
+            <label>Decrypt Text</label>
+            <textarea id="decrypt_text" cols="50" rows="20"></textarea><br />
+        </div>
         <textarea id="decrypt_result" cols="50" rows="6"></textarea><br />
         <button id="decrypt_submit_btn">
       Decrypt
@@ -185,7 +198,7 @@
         <select name="sharing" id="sharing">
       <option value="shamir">Shamir</option>
       <option value="aes">AES</option>
-      <option value="tc3">Technique 3</option>
+      <option value="Elgamal">Elgamal</option>
     </select>
         <div id="text_file_div">
             <p>Choose the text file to decrypt</p>

@@ -3,4 +3,3 @@ flask-cors
 pymongo
 crypto
 pycrypto==2.6
-fpdf
