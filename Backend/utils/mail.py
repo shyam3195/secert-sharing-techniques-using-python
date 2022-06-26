@@ -5,6 +5,7 @@ from email.mime.text import MIMEText
 
 
 from utils.secrets import sender_email_address, sender_email_password
+
 def send_email(receiver_address, message, subject):
     try: 
         #Create your SMTP session 

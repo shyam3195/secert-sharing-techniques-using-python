@@ -17,11 +17,11 @@ services:
     restart: always
 
   mongodb:
-    image: mongo:latest
+    image: mongo:latest # Get mongo image from docker
     ports:
-      - "2017:27017"
+      - "2017:27017" # Expose 2017 port in our system, But inside docker 27017 will be exposed
     volumes:
-      - mongodb:/data/db
+      - mongodb:/data/db # stores the mongo data in this location
   
 volumes:
     mongodb:

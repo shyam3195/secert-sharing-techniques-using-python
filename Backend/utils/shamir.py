@@ -16,7 +16,9 @@ def decrypt(shares):
 	sums = 0
 	prod_arr = []
 
+	#loop the shares  with index
 	for j, share_j in enumerate(shares):
+		# Get the x, y point of each point
 		xj, yj = share_j
 		prod = Decimal(1)
 
@@ -25,7 +27,9 @@ def decrypt(shares):
 			if i != j:
 				prod *= Decimal(Decimal(xi)/(xi-xj))
 
+		# Multiply all the yj
 		prod *= yj
+  		# Sum all the prod
 		sums += Decimal(prod)
 
 	return int(round(Decimal(sums), 0))
