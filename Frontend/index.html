@@ -8,18 +8,71 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>
+    <script src="scripts/utils.js"></script>
 
     <script>
-        $(function() {
+        let system_users = []
+        let current_user_req_connections = []
+        let current_user_connect = []
+        let current_user_yet_to_accept = []
+        let connections = []
+        let user_public_key = null
+        const user_id = localStorage.getItem('user_id')
+        $(document).ready(function() {
             let text_result = null
             $("#encrypt_result").hide()
             $("#decrypt_result").hide()
             $("#encrypt_text_div").hide()
             $("#text_file_div").hide()
+            $(".username").text(localStorage.getItem('username'))
+            $(".email").text(localStorage.getItem('email'))
+            $(".user_id").text(user_id)
 
-            // On File type component changes - file type [text field, text file]
-            // if text field is choosen, show the text field and hide text file
-            // if text file is choosen, show the text file and hide text field
+            getCurrentUser()
+
+            $(document).on("click", "a.accept_connect_but", function() {
+                body = JSON.stringify({
+                    "user_id": user_id,
+                    "userid_to_accept": event.target.id
+                })
+                fetch("http://127.0.0.1:5000/accept/connect", {
+                        method: 'POST',
+                        body: body,
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        window.location.reload()
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+            })
+
+
+            $("#connect_btn").click(function() {
+                    let body = JSON.stringify({
+                        "current_user_id": user_id,
+                        "requesting_user_id": $('#users').find(":selected").attr("id")
+                    });
+                    fetch("http://127.0.0.1:5000/request/connect", {
+                            method: 'POST',
+                            body: body,
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                        })
+                        .then(response => response.json())
+                        .then(res => window.location.reload())
+                        .catch((error) => {
+                            console.error('Error:', error);
+                        });
+                })
+                // On File type component changes - file type [text field, text file]
+                // if text field is choosen, show the text field and hide text file
+                // if text file is choosen, show the text file and hide text field
             $("#file_type").change(function() {
                 const changed_file_val = $("#file_type").val();
                 if (changed_file_val === 'tx_field') {
@@ -39,42 +92,30 @@
             // On Encrypt button is clicked, call the encrypt api in backend
             $('#encrypt_submit_btn').click(function() {
 
-                // Choose the sharing method = Shamir/AES/Elgmal
-                const selected_sharing_method = $('#sharing').find(":selected").text();
                 // Choose the Selected file type
                 const selected_file_type = $('#file_type').find(":selected").text();
 
                 const text_val = {
                     "data_to_encrypt": $("#txt_data_field").val(), // typed text data for encryption
-                    "email": $("#email_txt").val() // typed email value
+                    "email": $("#email_txt").val(), // typed email value
+                    "receiver_pub_key": $("#receiver_pub_key").val(), // typed receiver public key
+                    "receiver_id": $('#users_encrypt').find(":selected").attr("id"),
+                    "sender_id": user_id,
+                    "sender_public_key": user_public_key
                 }
 
-                let URL = "http://127.0.0.1:5000/encrypt/";
-                let body = JSON.stringify(text_val);
-                let HEADER = {
-                    'Content-Type': 'application/json',
-                }
-
-                if (selected_sharing_method === "Shamir") {
-                    URL = URL + "shamir"
-                } else if (selected_sharing_method === "AES") {
-                    URL = URL + "aes"
-                } else if (selected_sharing_method === "Elgamal") {
-                    URL = URL + "elgamal"
-                }
                 // Only if the file element is choosen, data_to_encrypt is changed as text_result variable
                 // which is the data read from file uploaded
                 if (selected_file_type === 'Text File') {
-                    body = JSON.stringify({
-                        "data_to_encrypt": text_result,
-                        "email": $("#email_txt").val()
-                    })
+                    text_val['data_to_encrypt'] = text_result
                 }
-
-                // Using Fetch to do the API call
-                fetch(URL, {
+                let body = JSON.stringify(text_val)
+                    // Using Fetch to do the API call
+                fetch("http://127.0.0.1:5000/encrypt/aes", {
                         method: 'POST',
-                        headers: HEADER,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
                         body: body,
                     })
                     .then(response => response.json())
@@ -90,22 +131,13 @@
             // On Decrypt button is clicked, call the decrypt api in backend
             $('#decrypt_submit_btn').click(function() {
 
-                const selected_sharing_method = $('#decrypting_method').find(":selected").text();
                 const text_val = {
-                    "encrypted_data": $("#decrypt_text").val()
+                    "encrypted_data": $("#decrypt_text").val(),
+                    "sender_public_key": $("#sender_pub_key").val(),
+                    "user_id": user_id
                 }
 
-                console.log("selected_sharing_method", selected_sharing_method)
-                let URL = "http://127.0.0.1:5000/decrypt/"
-                if (selected_sharing_method === "Shamir") {
-                    URL = URL + "shamir"
-                } else if (selected_sharing_method === "AES") {
-                    URL = URL + "aes"
-                } else if (selected_sharing_method === "Elgamal") {
-                    URL = URL + "elgamal"
-                }
-
-                fetch(URL, {
+                fetch("http://127.0.0.1:5000/decrypt/aes", {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -114,7 +146,6 @@
                     })
                     .then(response => response.json())
                     .then(data => {
-                        console.log('Success:', data);
                         // After the data success came, showing the decrypted result
                         $("#decrypt_result").val(JSON.stringify(data.data))
                         $("#decrypt_result").show()
@@ -135,7 +166,6 @@
                 };
                 fileReader.readAsText(files, "UTF-8");
             });
-
 
         });
     </script>
@@ -224,49 +254,214 @@
     <div class="container">
         <div class="text-center">
             <div class="nav price-tabs" role="tablist">
-                <a class="nav-link active" href="#encryption" role="tab" data-toggle="tab">Encryption</a>
+                <a class="nav-link active" href="#profile" role="tab" data-toggle="tab">Profile</a>
+                <a class="nav-link" href="#connect" role="tab" data-toggle="tab">Connect</a>
+                <a class="nav-link" href="#encryption" role="tab" data-toggle="tab">Encryption</a>
                 <a class="nav-link" href="#decryption" role="tab" data-toggle="tab">Decryption</a>
             </div>
         </div>
         <div class="tab-content wow fadeIn" style="visibility: visible; animation-name: fadeIn;">
-            <div role="tabpanel" class="tab-pane fade show active" id="encryption">
+            <div role="tabpanel" class="tab-pane fade show active" id="profile">
                 <div class="row justify-content-center">
                     <div class="crypto-method text-center selected">
-                        <div class="inner-cypto">
-                            <form>
-                                <div class="form-group">
-                                    <label class="float-left" for="sharing">Sharing Technique:</label>
-                                    <select name="sharing" id="sharing" class="selectpicker">
-                                        <option value="shamir">Shamir</option>
-                                        <option value="aes">AES</option>
-                                        <option value="Elgamal">Elgamal</option>
-                                    </select>
-                                </div><br/>
-                                <div class="form-group">
-                                    <label class="float-left" for="file">Input file type:</label>
-                                    <select name="file" id="file_type" class="selectpicker" aria-label="Default select example">
-                                        <option value="null">Choose the type of data</option>
-                                        <option value="tx_field">Text field</option>
-                                        <option value="text_file">Text File</option>
-                                    </select>
+                        <div class="container">
+                            <div class="main-body">
+                                <div class="row gutters-sm">
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="d-flex flex-column align-items-center text-center">
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="Admin" class="rounded-circle" width="150">
+                                                    <div class="mt-3">
+                                                        <h4 class="username"></h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="card mb-3">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <h6 class="mb-0">Full Name</h6>
+                                                    </div>
+                                                    <div class="col-sm-9 text-secondary username">
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <h6 class="mb-0">Email</h6>
+                                                    </div>
+                                                    <div class="col-sm-9 text-secondary email">
+                                                        fip@jukmuh.al
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <h6 class="mb-0">Connections</h6>
+                                                    </div>
+                                                    <div class="col-sm-9 text-secondary connections">
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <h6 class="mb-0">User ID</h6>
+                                                    </div>
+                                                    <div class="col-sm-9 text-secondary user_id">
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                        <a class="btn btn-info " href="http://localhost:3000/login">Logout</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group" id="encrypt_text_div">
-                                    <label class="float-left" for="data">Input text:</label>
-                                    <input id="txt_data_field" class="form-control" type="text" style="display: none;" />
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="connect">
+                <div class="row justify-content-center">
+                    <div class="crypto-method text-center selected">
+                        <div class="container">
+                            <div class="main-body">
+                                <div class="row gutters-sm">
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="d-flex flex-column align-items-center text-center">
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="Admin" class="rounded-circle" width="150">
+                                                    <div class="mt-3">
+                                                        <h4 class="username"></h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="card mb-3">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <h6 class="mb-0">Connections</h6>
+                                                    </div>
+                                                    <div class="col-sm-9 text-secondary connections">
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <h6 class="mb-0">Waiting Connections</h6>
+                                                    </div>
+                                                    <div class="col-sm-9 text-secondary waiting_connections">
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <h6 class="mb-0">Connections yet to be accepted</h6>
+                                                    </div>
+                                                    <div class="col-sm-9 text-secondary accept_connections">
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <h6 class="mb-0">Connect User</h6>
+                                                    </div>
+                                                    <div class="col-sm-9 text-secondary">
+                                                        <select name="users" id="users">
+                                                        </select>
+                                                    </div>
+
+                                                </div>
+                                                <hr>
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                        <a class="btn btn-info " id="connect_btn" target="__blank">Connect</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group" id="text_file_div">
-                                    <label class="form-label float-left" for="customFile">Text File</label>
-                                    <input type="file" class="form-control" id="file_upload" />
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="encryption">
+                <div class="row justify-content-center">
+                    <div class="crypto-method text-center selected">
+                        <div class="container">
+                            <div class="main-body">
+                                <div class="row gutters-sm">
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="d-flex flex-column align-items-center text-center">
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="Admin" class="rounded-circle" width="150">
+                                                    <div class="mt-3">
+                                                        <h4 class="username"></h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="card mb-3">
+                                            <div class="card-body">
+                                                <div class="form-group">
+                                                    <label class="float-left" for="user">Choose User:</label>
+                                                    <select name="user" id="users_encrypt" aria-label="Default select example">
+                                                        </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="float-left" for="file">Input file type:</label>
+                                                    <select name="file" id="file_type" class="selectpicker" aria-label="Default select example">
+                                                            <option value="null">Choose the type of data</option>
+                                                            <option value="tx_field">Text field</option>
+                                                            <option value="text_file">Text File</option>
+                                                        </select>
+                                                </div>
+                                                <div class="form-group" id="encrypt_text_div">
+                                                    <label class="float-left" for="data">Input text:</label>
+                                                    <input id="txt_data_field" class="form-control" type="text" style="display: none;" />
+                                                </div>
+                                                <div class="form-group" id="text_file_div">
+                                                    <label class="form-label float-left" for="customFile">Text File</label>
+                                                    <input type="file" class="form-control" id="file_upload" />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="float-left" for="file">Receiver Public Key</label>
+                                                    <input type="text" class="form-control" id="receiver_pub_key" />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="float-left" for="file">Receiver Email</label>
+                                                    <input type="text" class="form-control" id="email_txt" />
+                                                </div>
+                                                <button type="submit" id="encrypt_submit_btn" class="btn btn-info btn-block">Encrypt</button>
+                                                <div class="form-group">
+                                                    <textarea id="encrypt_result" cols="50" rows="20"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="float-left" for="file">Recepient Email</label>
-                                    <input type="text" class="form-control" id="email_txt" />
-                                </div>
-                                <button type="submit" id="encrypt_submit_btn" class="btn btn-primary btn-lg btn-block">Encrypt</button>
-                                <div class="form-group">
-                                    <textarea id="encrypt_result" cols="50" rows="20"></textarea>
-                                </div>
-                            </form>
+                            </div>
+
                         </div>
 
                     </div>
@@ -276,22 +471,47 @@
             <div role="tabpanel" class="tab-pane fade" id="decryption">
                 <div class="row justify-content-center">
                     <div class="crypto-method text-center selected">
-                        <div class="form-group">
-                            <label for="decrypting">Decrypt Method</label>
-                            <select name="decrypting" id="decrypting_method" class="selectpicker">
-                                <option value="shamir">Shamir</option>
-                                <option value="aes">AES</option>
-                                <option value="Elgamal">Elgamal</option>
-                            </select>
+                        <div class="container">
+                            <div class="main-body">
+                                <div class="row gutters-sm">
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="d-flex flex-column align-items-center text-center">
+                                                    <img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="Admin" class="rounded-circle" width="150">
+                                                    <div class="mt-3">
+                                                        <h4 class="username"></h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="card mb-3">
+                                            <div class="card-body">
+                                                <div class="form-group">
+                                                    <div class="form-group">
+                                                        <label for="decrypt_text">Decrypt Text</label>
+                                                        <textarea name="decrypt_text" id="decrypt_text" cols="30" rows="8"></textarea><br />
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="float-left" for="file">Sender Public Key</label>
+                                                        <input type="text" class="form-control" id="sender_pub_key" />
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <textarea id="decrypt_result" cols="50" rows="6"></textarea><br />
+                                                    </div>
+                                                    <button type="submit" id="decrypt_submit_btn" class="btn btn-info btn-lg btn-block">
+                                                        Decrypt
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="decrypt_text">Decrypt Text</label>
-                            <textarea name="decrypt_text" id="decrypt_text" cols="50" rows="15"></textarea><br />
-                        </div>
-                        <textarea id="decrypt_result" cols="50" rows="6"></textarea><br />
-                        <button type="submit" id="decrypt_submit_btn" class="btn btn-primary btn-lg btn-block">
-                            Decrypt
-                        </button>
+
                     </div>
 
                 </div>

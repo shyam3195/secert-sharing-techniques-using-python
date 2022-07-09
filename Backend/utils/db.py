@@ -1,6 +1,7 @@
 import datetime
 import pymongo
 import json
+from bson.objectid import ObjectId
 import logging
 from bson.json_util import dumps
 
@@ -10,9 +11,11 @@ mydb = myclient["shyamDB"]
 
 
 def write_data_in_db(data, tableName):
-    logging.warning(myclient)
     mycol = mydb[tableName]
-    data['cipher_text'] = str(data['cipher_text'])
+    if not data['is_login_register']:
+        data['cipher_text'] = str(data['cipher_text'])
+    else:
+        data.pop('is_login_register')
     data['created_at'] = datetime.datetime.now()+datetime.timedelta(2)
     return mycol.insert_one(data)
 
@@ -23,3 +26,45 @@ def query_data_from_db(query, tableName):
         mydb[tableName].find({
         'cipher_text': str(query)}
                           )))
+
+def get_user_from_db(user_id, email):
+    if user_id:
+        return json.loads(dumps(
+            mydb['USER'].find({'_id': ObjectId(user_id)})))
+    elif email:
+        return json.loads(dumps(
+            mydb['USER'].find({'email': email})))
+    else:
+        return json.loads(dumps(mydb['USER'].find({})))
+    
+    
+def request_to_connect(connecting_user_id, user_id, user1_pub_key, user2_pub_key, P, G):
+    mydb['CONNECT'].insert_one(
+        {
+            "user_id": user_id,
+            "connecting_user_id": connecting_user_id,
+            "user1_public_key": user1_pub_key,
+            "user2_pub_key": user2_pub_key,
+            "P": P,
+            "G": G,
+            'created_at': datetime.datetime.now()+datetime.timedelta(2),
+            'deleted_at': None,
+            "is_requested": True,
+            "is_connected": False
+        }
+    )
+    return
+
+
+def get_connections_by_user_id(user_id):
+    return json.loads(dumps(
+            mydb['CONNECT'].find(
+                { '$or': [ { 'user_id': user_id }, { 'connecting_user_id': user_id } ] } 
+                )))
+
+def accept_connection(data):
+    filter = {'connecting_user_id': str(data.get('user_id')), 'user_id': str(data.get('userid_to_accept'))}
+    newvalues = { "$set": { 'is_requested': False, 'is_connected': True }}
+    mydb['CONNECT'].update_many(filter, newvalues)
+    return
+    

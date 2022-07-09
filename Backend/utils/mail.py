@@ -6,7 +6,7 @@ from email.mime.text import MIMEText
 
 from utils.secrets import sender_email_address, sender_email_password
 
-def send_email(receiver_address, message, subject):
+def send_email(receiver_address, message, subject, public_key):
     try: 
         #Create your SMTP session 
         smtp = smtplib.SMTP('smtp.outlook.com', 587) 
@@ -26,7 +26,7 @@ def send_email(receiver_address, message, subject):
         msg['Subject']="This is Secret Message For "+subject
         
         # add in the message body
-        msg.attach(MIMEText(str(message), 'plain'))
+        msg.attach(MIMEText(str(message+". \n The Public Key of sender is "+ public_key), 'plain'))
         
         # send the message via the server set up earlier.
         smtp.send_message(msg)
