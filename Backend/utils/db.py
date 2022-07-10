@@ -28,12 +28,15 @@ def query_data_from_db(query, tableName):
                           )))
 
 def get_user_from_db(user_id, email):
+    # If the user_id is given then query using user_id
     if user_id:
         return json.loads(dumps(
             mydb['USER'].find({'_id': ObjectId(user_id)})))
+    # If the email is given then query using email
     elif email:
         return json.loads(dumps(
             mydb['USER'].find({'email': email})))
+    # If both email and user_id is not given then query all users
     else:
         return json.loads(dumps(mydb['USER'].find({})))
     
@@ -63,7 +66,9 @@ def get_connections_by_user_id(user_id):
                 )))
 
 def accept_connection(data):
+    # Filter connecting_user and user_id from CONNECT TABLE
     filter = {'connecting_user_id': str(data.get('user_id')), 'user_id': str(data.get('userid_to_accept'))}
+    # Set is_requested as False and is_connected as True in CONNECT TABLE
     newvalues = { "$set": { 'is_requested': False, 'is_connected': True }}
     mydb['CONNECT'].update_many(filter, newvalues)
     return
